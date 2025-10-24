@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Connect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#2563eb", /* blue-600 */
+          "background-light": "#ffffff",
+          "background-dark": "#0b1510",
+        },
+        fontFamily: { display: ["Inter", "sans-serif"] },
+      },
+    },
+  };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+<style>
+  body {
+    background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
+    overflow: hidden;
+  }
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* h1 italic + bold */
+  h1 {
+    font-style: italic;
+    font-weight: 900;
+  }
+
+  /* animated gradient for h2 */
+  .gradient-text {
+    background: linear-gradient(90deg, #2563eb, #60a5fa, #93c5fd, #2563eb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 300%;
+    animation: gradientMove 4s ease infinite;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* glowing talk button */
+  .gradient-btn {
+    background: linear-gradient(90deg, #2563eb, #60a5fa, #3b82f6);
+    background-size: 200% 200%;
+    animation: gradientShift 3s infinite;
+    color: white;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .recording {
+    animation: pulse 1.2s infinite;
+    box-shadow: 0 0 20px #2563eb;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0px #2563eb; transform: scale(1); }
+    50% { box-shadow: 0 0 30px #2563eb; transform: scale(1.05); }
+    100% { box-shadow: 0 0 0px #2563eb; transform: scale(1); }
+  }
+
+  .equalizer-bar {
+    width: 4px;
+    background-color: #2563eb;
+    margin: 0 1px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+</style>
+</head>
+
+<body class="bg-background-light font-display text-gray-800 relative">
+<canvas id="roboticCanvas"></canvas>
+<div class="flex flex-col min-h-screen relative z-10">
+
+<header class="w-full bg-white/60 backdrop-blur-sm border-b border-blue-100 shadow-sm">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <img src="logo.png" alt="Logo" class="h-8 w-8" />
+        </div>
+        <h1 class="ml-3 text-2xl text-blue-700">Srishti Innovative</h1>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-grow flex items-center justify-center text-center">
+  <div class="px-4 sm:px-6 lg:px-8 py-12">
+    <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight gradient-text">
+      Welcome To The New World.
+    </h2>
+    <p class="mt-4 max-w-xl mx-auto text-lg text-gray-600">
+      Start a conversation with a single click. No sign-ups, no hassle. Just pure, simple communication.
+    </p>
+
+    <div class="mt-8 flex justify-center items-center gap-4 flex-col sm:flex-row">
+      <button id="talkNowBtn"
+        class="w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg gradient-btn hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-all duration-300">
+        Talk Now
+      </button>
+      <button id="stopBtn"
+        class="w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-blue-300 text-base font-medium rounded-lg text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-all duration-300">
+        Stop
+      </button>
+    </div>
+
+    <div id="chatContainer" class="mt-10 text-left hidden">
+      <p id="userChat" class="text-blue-600 mb-2 font-medium">You: </p>
+      <p id="botChat" class="text-gray-800 font-semibold">Robuu: </p>
+    </div>
+
+    <div id="micEqualizer" class="hidden mt-6"></div>
+    <div id="speechEqualizer" class="hidden mt-6"></div>
+  </div>
+</main>
+
+<footer class="w-full bg-white/60 backdrop-blur-sm border-t border-blue-100">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center py-6 text-sm text-gray-500">
+      <p>© 2025 Connect. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 🔹 Blue glowing animated background
+    const canvas = document.getElementById('roboticCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    const dots = Array(80).fill().map(() => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.6,
+        dy: (Math.random() - 0.5) * 0.6
+    }));
+    function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = '#2563eb';
+        dots.forEach(dot=>{
+            ctx.beginPath();
+            ctx.arc(dot.x,dot.y,dot.r,0,Math.PI*2);
+            ctx.fill();
+            dot.x += dot.dx; dot.y += dot.dy;
+            if(dot.x<0||dot.x>canvas.width) dot.dx*=-1;
+            if(dot.y<0||dot.y>canvas.height) dot.dy*=-1;
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // 🎤 Voice logic
+    let recognition, isSpeaking = false, isActive = false;
+    const talkBtn = document.getElementById('talkNowBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const userChat = document.getElementById('userChat');
+    const botChat = document.getElementById('botChat');
+    const chatContainer = document.getElementById('chatContainer');
+
+    async function startConversation() {
+        if (isActive) return;
+        isActive = true;
+        chatContainer.classList.remove('hidden');
+        talkBtn.classList.add('recording');
+        talkBtn.innerText = "Listening...";
+
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        recognition.onresult = async (e) => {
+            const text = e.results[0][0].transcript;
+            userChat.innerText = "You: " + text;
+            const res = await fetch("http://127.0.0.1:8000/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: text })
+            });
+            const data = await res.json();
+            botChat.innerText = "Robuu: " + data.reply;
+
+            const speech = new SpeechSynthesisUtterance(data.reply);
+            speech.onend = () => { if (isActive) setTimeout(() => recognition.start(), 800); };
+            window.speechSynthesis.speak(speech);
+        };
+
+        recognition.onerror = e => { console.error(e); recognition.stop(); if(isActive) recognition.start(); };
+        recognition.onend = () => { if(isActive && !isSpeaking) recognition.start(); };
+        recognition.start();
+    }
+
+    function stopConversation() {
+        isActive = false;
+        talkBtn.classList.remove('recording');
+        talkBtn.innerText = "Talk Now";
+        if (recognition) recognition.stop();
+        window.speechSynthesis.cancel();
+    }
+
+    talkBtn.onclick = startConversation;
+    stopBtn.onclick = stopConversation;
+});
+</script>
+</body>
+</html>
